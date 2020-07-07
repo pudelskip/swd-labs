@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D # Without this projection='3d' is not recognized
@@ -34,6 +33,9 @@ def draw_contour_3d(points, sides):
         plt.plot(xs, ys, zs, color="blue")
 
 
+
+
+
 def convex_comb_general(points, limit=1.0, step_arange=0.1, tabs=""):
     """Generates all linear convex combinations of points with the specified precision.
 
@@ -43,8 +45,24 @@ def convex_comb_general(points, limit=1.0, step_arange=0.1, tabs=""):
     :param tabs: indent for debug printing.
     :return: list of points, each represented as np.array.
     """
+
+    if len(points)==1:
+        return []
+
     # TODO: Zadanie 4.2: Rekurencyjna implementacja (albo zupełnie własna, rekurencja to propozycja).
-    return []
+    coefs = gen_coefs_template(0, limit, step_arange, len(points))
+
+    cc_points = []
+
+    for cs in coefs:
+        p = np.array(len(points[0])*[0.0])
+        for i,c in enumerate(cs):
+            p+= points[i]*c
+        cc_points.append(p)
+
+
+
+    return cc_points
 
 
 def convex_comb_triangle_loop(points):
@@ -53,14 +71,19 @@ def convex_comb_triangle_loop(points):
     :param points: list of numpy arrays representing nodes of the figure.
     :return: list of points, each represented as np.array.
     """
+    cc_points = []
     assert len(points) == 3
+    for point in np.linspace(points[1],points[2], num = 10):
+        cc_points.extend(np.linspace(points[0],point, num = 10))
     # TODO: Zadanie 4.1: Implementacja za pomocą pętli obliczenia wypukłych kombinacji liniowych dla wierzchołków trójkąta.
-    return []
+    return cc_points
 
 
 def draw_convex_combination_2d(points, cc_points):
     # TODO: Zadanie 4.1: Rysowanie wykresu dla wygenerowanej listy punktów (cc_points).
-
+    x, y = zip(*cc_points)
+    plt.scatter(x, y)
+    plt.margins(0.05)
     # Drawing contour of the figure (with plt.plot).
     draw_contour_2d(points)
 
@@ -74,7 +97,8 @@ def draw_convex_combination_3d(points, cc_points, sides=None, color_z=True):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     # TODO: Zadanie 4.3: Zaimplementuj rysowanie wykresu 3D dla cc_points. Możesz dodatkowo zaimplementować kolorowanie względem wartości na osi z.
-
+    xs, ys, zs = zip(*cc_points)
+    ax.scatter(xs, ys, zs)
     # Drawing contour of the figure (with plt.plot).
     if sides is not None:
         draw_contour_3d(points, sides)
@@ -85,12 +109,19 @@ def draw_vector_addition(vectors, coeffs):
     for c, v in zip(coeffs, vectors):
         assert isinstance(v, np.ndarray)
         assert isinstance(c, float)
+        vec = c*v
+        if vec[0] != 0.0 and vec[0] != 0.0:
+            plt.arrow(start[0], start[1], vec[0],vec[1], head_width=0.1, head_length=0.1, color="magenta",
+                      zorder=4, length_includes_head=True)
+        start = vec
         # TODO: Zadanie 4.4: Wzorując się na poniższym użyciu funkcji plt.arrow, napisz kod rysujący wektory składowe.
         # TODO: Każdy kolejny wektor powininen być rysowany od punktu, w którym zakończył się poprzedni wektor.
         # TODO: Pamiętaj o przeskalowaniu wektorów przez odpowiedni współczynnik.
 
+
     # Drawing the final vector being a linear combination of the given vectors.
     # The third and the fourth arguments of the plt.arrow function indicate movement (dx, dy), not the ending point.
+
     resultant_vector = sum([c * v for c, v in zip(coeffs, vectors)])
     plt.arrow(0.0, 0.0, resultant_vector[0], resultant_vector[1], head_width=0.1, head_length=0.1, color="magenta", zorder=4, length_includes_head=True)
     plt.margins(0.05)
@@ -197,6 +228,31 @@ def draw_vector_addition_ex1():
     plt.show()
 
 
+rec = 0
+
+def gen_coefs_template(start, stop, step, coefs_count):
+
+    def _gen_coefs(cin, depth, sum, coefs):
+        global rec
+        rec+=1
+        if sum >stop:
+            return
+
+        if depth==1:
+            cin.append(stop-sum)
+            coefs.append(cin)
+            return
+
+
+        for i,coef in enumerate(np.arange(start, stop-sum+step, step)):
+            temp = cin.copy()
+            temp.append(coef)
+
+            _gen_coefs(temp, depth-1, sum+coef,coefs)
+
+        return coefs
+
+    return _gen_coefs([],coefs_count,0,[])
 
 if __name__ == "__main__":
     # for task 4.1
@@ -204,15 +260,15 @@ if __name__ == "__main__":
     draw_triangle_simple_2()
 
     # for task 4.2
-    # draw_triangle_1()
-    # draw_triangle_2()
-    # draw_rectangle()
-    # draw_hexagon()
-    # draw_not_convex()
+    draw_triangle_1()
+    draw_triangle_2()
+    draw_rectangle()
+    draw_hexagon()
+    draw_not_convex()
 
     # for task 4.3
-    # draw_tetrahedron()
-    # draw_cube()
+    draw_tetrahedron()
+    draw_cube()
 
     # for task 4.4
-    # draw_vector_addition_ex1()
+    draw_vector_addition_ex1()

@@ -4,6 +4,7 @@ import os
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 
 def pca_sklearn(data, n_comp=None):
@@ -20,7 +21,12 @@ def pca_sklearn(data, n_comp=None):
         n_comp = data.shape[1]
     # TODO: Implement PCA using scikit-learn library, class: sklearn.decomposition.PCA
     # TODO: Return the transformed data.
-    return None
+
+    pca = PCA(n_components=n_comp)
+    pca.fit(data)
+    transformed_data = pca.transform(data)
+
+    return transformed_data
 
 
 
@@ -38,48 +44,59 @@ def pca_manual(data, n_comp=None):
 
     # TODO: 1) Adjust the data so that the mean of every column is equal to 0.
 
+    means = np.mean(data,axis=0)
+
+    means = np.tile(means,(data.shape[0],1))
+    data_adjusted = data-means
 
 
     # TODO: 2) Compute the covariance matrix. You can use the function from numpy (numpy.cov), or multiply appropriate matrices.
     # Warning: numpy.cov expects dimensions to be in rows and different observations in columns.
     #          You can transpose data or set rowvar=False flag.
 
+    covariance_matrix = np.cov(data_adjusted.transpose())
     print("\nCOVARIANCE MATRIX:")
-    print("TODO")
+    print(covariance_matrix)
 
 
 
     # TODO: 3) Calculate the eigenvectors and eigenvalues of the covariance matrix.
     # You may use np.linalg.eig, which returns a tuple (eigval, eigvec).
     # Make sure that eigenvectors are unit vectors (PCA needs unit vectors).
-
+    eigval, eigvec = np.linalg.eig(covariance_matrix)
 
 
     # TODO: 4) Sort eigenvalues (and their corresponding eigenvectors) in the descending order (e.g. by using argsort),
     #          and construct the matrix K with eigenvectors in the columns.
 
+    sorted_indices = np.argsort(eigval,axis=0)[::-1]
+    eigval = eigval[sorted_indices]
+    eigvec = eigvec[:, sorted_indices]
+    eigvec = eigvec.transpose()
+
     print("\nSORTED EIGEN VALUES:")
-    print("TODO")
+    print(eigval)
     print("\nSORTED EIGEN VECTORS:")
-    print("TODO")
-
-
-
+    print(eigvec)
+    print("\n")
     # TODO: 5) Select the components (n_comp).
+    selected_vectors = eigvec[0:n_comp, :]
 
+    K = np.matrix(selected_vectors)
+    K= K.transpose()
 
 
     # TODO: 6) Calculate the transformed data.
-
-
+    Y = np.matmul(data,K)
+    Y = np.array(Y)
 
     # TODO: 7) Calculate the covariance matrix of the transformed data.
-
+    transformed_cov = np.cov(Y.transpose())
     print("\nCOVARIANCE MATRIX OF THE TRANSFORMED DATA:")
-    print("TODO")
+    print(transformed_cov)
 
     # TODO: 8) Return the transformed data.
-    return None
+    return Y
 
 
 
